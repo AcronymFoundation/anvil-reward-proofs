@@ -1,0 +1,25 @@
+{
+  "name": "anvil-reward-proofs",
+  "version": "1.0.0",
+  "description": "Repository hosting Merkle Leaves and the resulting Merkle Proofs for Merkle Roots published to the Anvil Reward smart contract",
+  "scripts": {
+    "build": "npm run clean --silent && tsc",
+    "clean": "rimraf build",
+    "clean-modules": "rimraf build && rimraf node_modules",
+    "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "lint": "prettier --config .prettierrc --list-different 'src/**/*.ts'",
+    "verifyContract": "npm run build --silent && node build/src/verifyContract.js",
+    "verifyRoot": "npm run build --silent && node build/src/verifyRoot.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.7",
+    "chalk": "^4.1.2",
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.6.3"
+  }
+}
