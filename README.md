@@ -12,7 +12,7 @@ NodeJS (preferably installed via nvm)
 `npm run build`
 
 # Verify a root according to proofs in GitHub
-`npm run verifyRoot -- <root here>`
+`npm run verifyRoot -- <network name here> <root here>`
 
 Note: for the public repo, no access token will be required.
 

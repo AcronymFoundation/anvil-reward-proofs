@@ -10,14 +10,20 @@ import { isVerificationError, VerificationError, VerificationResponse, Verificat
  */
 function printUsage(exitCode: number = 1) {
   console.log(`node verifyContract <NETWORK_NAME> <REWARD_CONTRACT_ADDRESS>`)
+  console.log(`example: node verifyContract mainnet "0x0123456789012345678901234567890123456789"`)
   process.exit(exitCode)
+}
+
+interface ParsedArgs {
+  networkName: string
+  rewardContract: Contract
 }
 
 /**
  * Parses the arguments for this script and returns the populated objects necessary to perform script logic.
- * @return The ethers Contract object for the Reward smart contract in the appropriate environment.
+ * @return The ParsedArgs object.
  */
-function parseArguments(): Contract {
+function parseArguments(): ParsedArgs {
   const args = process.argv
   if (args.length < 4) {
     printUsage()
@@ -34,11 +40,14 @@ function parseArguments(): Contract {
     printUsage()
   }
 
-  return new ethers.Contract(contractAddress, RewardABI, provider)
+  return {
+    networkName,
+    rewardContract: new ethers.Contract(contractAddress, RewardABI, provider)
+  }
 }
 
 async function main() {
-  const rewardContract: Contract = parseArguments()
+  const { rewardContract, networkName }: ParsedArgs = parseArguments()
 
   let isInvalid: boolean = false
 
@@ -60,7 +69,10 @@ async function main() {
     }
 
     console.log(chalk.gray(`verifying ${rootPropertyName}: ${root}...`))
-    const resp: VerificationResponse = await verifyRoot(root)
+
+    const branchPrefix = networkName.toLowerCase() === 'mainnet' ? '' : 'testnet-'
+
+    const resp: VerificationResponse = await verifyRoot(root, branchPrefix)
     const isError = isVerificationError(resp)
     if (isError) {
       console.log(chalk.red(`error verifying ${rootPropertyName} ${root}: ${(resp as VerificationError).msg}`))

@@ -1,36 +1,49 @@
 import { formatAnvil, getListOfIssuesString, isBytes32, verifyRoot } from './helpers'
 import chalk from 'chalk'
 import { isVerificationError, VerificationError, VerificationResponse, VerificationResult } from './types'
+import { Contract } from 'ethers'
 
 function printUsage(exitCode: number = 1) {
-  console.log(`node verifyRoot "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"`)
+  console.log(`node verifyRoot <NETWORK_NAME> <HEX_ROOT_STRING>`)
+  console.log(`example: node verifyRoot mainnet "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"`)
   process.exit(exitCode)
+}
+
+interface ParsedArgs {
+  networkName: string
+  root: string
 }
 
 /**
  * Parses the expected command line args and does validation.
- * In this case, that is just the Merkle Root to verify.
+ * In this case, that is just the network name and Merkle Root to verify.
  */
-function parseRootArg(): string {
+function parseArgs(): ParsedArgs {
   const args = process.argv
-  if (args.length < 3) {
+  if (args.length < 4) {
     printUsage()
   }
 
-  const rootArg = args[2]
+  const networkName = args[2].toLowerCase()
+
+  const rootArg = args[3]
   const root = (rootArg.startsWith('0x') ? rootArg : `0x${rootArg}`).toLowerCase()
   if (!isBytes32(root)) {
     console.log(chalk.red('root argument must be 64 hex characters'))
     printUsage()
   }
 
-  return root
+  return {
+    networkName,
+    root
+  }
 }
 
 async function main() {
-  const root = parseRootArg()
+  const { root, networkName }: ParsedArgs = parseArgs()
 
-  const resp: VerificationResponse = await verifyRoot(root)
+  const branchPrefix = networkName.toLowerCase() === 'mainnet' ? '' : 'testnet-'
+  const resp: VerificationResponse = await verifyRoot(root, branchPrefix)
   const isError = isVerificationError(resp)
   if (isError) {
     console.log(chalk.red(`error verifying root ${root}: ${(resp as VerificationError).msg}`))
