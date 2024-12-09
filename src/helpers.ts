@@ -10,10 +10,12 @@ const proofsDirName = 'proofs/'
 /**
  * Verifies the provided merkle root against the root and proofs published to GitHub.
  * @param root The Merkle root to verify.
+ * @param branchPrefix The prefix for the git branch containing the root data in question.
  * @return The VerificationResponse object indicating details as to the verification status of the provided root.
  */
-export async function verifyRoot(root: string): Promise<VerificationResponse> {
-  const leavesUrl = `${baseUrl}${root}/${leavesFileName}`
+export async function verifyRoot(root: string, branchPrefix: string = ''): Promise<VerificationResponse> {
+  const baseUrlWithRootPrefix = `${baseUrl}${branchPrefix}`
+  const leavesUrl = `${baseUrlWithRootPrefix}${root}/${leavesFileName}`
   const leavesResp = await fetch(leavesUrl)
 
   if (!leavesResp.ok) {
@@ -34,7 +36,7 @@ export async function verifyRoot(root: string): Promise<VerificationResponse> {
       const amount = leaf[1]
       resp.leafSum += BigInt(amount).valueOf()
 
-      const url = `${baseUrl}${root}/${proofsDirName}${address.toLowerCase()}.json` // NB: first entry is address
+      const url = `${baseUrlWithRootPrefix}${root}/${proofsDirName}${address.toLowerCase()}.json` // NB: first entry is address
       const leafResp = await fetch(url)
       if (!leafResp.ok) {
         resp.leavesThatWereNotFound.push({ atUrl: url, amount, address })
